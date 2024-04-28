@@ -2,19 +2,17 @@
 	single linked list merge
 	This problem requires you to merge two ordered singly linked lists into one ordered singly linked list
 */
-// I AM NOT DONE
-
 use std::fmt::{self, Display, Formatter};
 use std::ptr::NonNull;
 use std::vec::*;
 
 #[derive(Debug)]
-struct Node<T> {
+struct Node<T: std::cmp::PartialOrd> {
     val: T,
     next: Option<NonNull<Node<T>>>,
 }
 
-impl<T> Node<T> {
+impl<T: std::cmp::PartialOrd> Node<T> {
     fn new(t: T) -> Node<T> {
         Node {
             val: t,
@@ -23,19 +21,19 @@ impl<T> Node<T> {
     }
 }
 #[derive(Debug)]
-struct LinkedList<T> {
+struct LinkedList<T: std::cmp::PartialOrd> {
     length: u32,
     start: Option<NonNull<Node<T>>>,
     end: Option<NonNull<Node<T>>>,
 }
 
-impl<T> Default for LinkedList<T> {
+impl<T: std::cmp::PartialOrd + Clone> Default for LinkedList<T> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<T> LinkedList<T> {
+impl<T: std::cmp::PartialOrd + Clone> LinkedList<T> {
     pub fn new() -> Self {
         Self {
             length: 0,
@@ -72,17 +70,37 @@ impl<T> LinkedList<T> {
 	pub fn merge(list_a:LinkedList<T>,list_b:LinkedList<T>) -> Self
 	{
 		//TODO
-		Self {
-            length: 0,
-            start: None,
-            end: None,
-        }
+		let mut list_c = LinkedList::<T>::new();
+		let mut a_ptr = list_a.start;
+		let mut b_ptr = list_b.start;
+		while a_ptr != None && b_ptr != None{
+			let a_node = unsafe {a_ptr.unwrap().as_ref()};
+			let b_node = unsafe {b_ptr.unwrap().as_ref()};
+			if a_node.val < b_node.val{
+				list_c.add(a_node.val.clone());
+				a_ptr = a_node.next;
+			}else {
+				list_c.add(b_node.val.clone());
+				b_ptr = b_node.next;
+			}
+		}
+		while a_ptr != None{
+			let a_node = unsafe {a_ptr.unwrap().as_ref()};
+			list_c.add(a_node.val.clone());
+			a_ptr = a_node.next;
+		}
+		while b_ptr != None{
+			let b_node = unsafe {b_ptr.unwrap().as_ref()};
+			list_c.add(b_node.val.clone());
+			b_ptr = b_node.next;
+		}
+		list_c
 	}
 }
 
 impl<T> Display for LinkedList<T>
 where
-    T: Display,
+    T: Display + std::cmp::PartialOrd,
 {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         match self.start {
@@ -94,7 +112,7 @@ where
 
 impl<T> Display for Node<T>
 where
-    T: Display,
+    T: Display + std::cmp::PartialOrd,
 {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         match self.next {
